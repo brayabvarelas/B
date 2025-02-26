@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TikTok Básico - Subir Videos y Fotos</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>ftkroo</h1>
+    </header>
+
+    <main>
+        <section>
+            <h2>Sube tu video o foto</h2>
+            <!-- Formulario para subir archivos -->
+            <input type="file" id="fileInput" accept="image/*,video/*">
+            <button id="uploadBtn">Subir</button>
+        </section>
+
+        <section>
+            <h2>Videos y Fotos subidos</h2>
+            <div id="mediaContainer"></div> <!-- Aquí se mostrarán los videos e imágenes -->
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; B.R.N</p>
+    </footer>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.3/firebase-storage.js"></script>
+
+    <script>
+        // Inicializar Firebase
+        const firebaseConfig = {
+  apiKey: "AIzaSyDeOWJ1SkU6ycr16eP_7DhsHcrUvbCsj2U",
+  authDomain: "webb-245a9.firebaseapp.com",
+  projectId: "webb-245a9",
+  storageBucket: "webb-245a9.firebasestorage.app",
+  messagingSenderId: "34008713178",
+  appId: "1:34008713178:web:67dff0202c66f81470a2e3",
+  measurementId: "G-4S5JYDMZD6"
+};
+        const app = firebase.initializeApp(firebaseConfig);
+        const storage = firebase.storage();
+
+        // Referencias de elementos
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const mediaContainer = document.getElementById('mediaContainer');
+
+        // Subir archivo a Firebase Storage
+        uploadBtn.addEventListener('click', () => {
+            const file = fileInput.files[0];
+            if (!file) {
+                alert("Por favor selecciona un archivo.");
+                return;
+            }
+
+            const storageRef = storage.ref('uploads/' + file.name);
+            const uploadTask = storageRef.put(file);
+
+            // Monitoreo del progreso de la carga
+            uploadTask.on('state_changed', 
+                (snapshot) => {
+                    let progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    
+                    console.log('Upload is ' + progress + '% done');
+                }, 
+                (error) => {
+                    console.error('Error uploading file: ', error);
+                }, 
+                () => {
+                    // Cuando la carga se completa
+                    uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
+                        console.log('File available at ' + downloadURL);
+                        displayMedia(downloadURL, file.type);
+                    });
+                }
+            );
+        });
+
+        // Mostrar videos e imágenes en la página
+        function displayMedia(url, type) {
+            const mediaElement = document.createElement(type.startsWith('image') ? 'img' : 'video');
+            mediaElement.src = url;
+            mediaElement.controls = true;
+            mediaElement.style.width = '300px';
+            mediaElement.style.margin = '10px';
+            mediaContainer.appendChild(mediaElement);
+        }
+    </script>
+</body>
